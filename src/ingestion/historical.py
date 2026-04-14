@@ -57,5 +57,5 @@ def stream_trades(symbol: str, day: date) -> Iterator[dict]:
                 yield {
                     "price": row[1],
                     "qty": row[2],
-                    "timestamp": int(row[5]),
+                    "timestamp": int(row[5]) // 1000,  # Binance Vision uses µs; normalise to ms
                 }

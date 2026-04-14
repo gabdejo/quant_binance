@@ -196,5 +196,5 @@ def _reset(state: AccumulatorState) -> None:
 
 
 def _ms_to_iso(ts_ms: int) -> str:
-    from datetime import datetime, timezone
-    return datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc).isoformat()
+    from datetime import datetime, timezone, timedelta
+    return (datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(milliseconds=ts_ms)).isoformat()
