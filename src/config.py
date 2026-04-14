@@ -7,9 +7,9 @@ load_dotenv()
 
 @dataclass
 class Config:
-    # Database
+    # Database — only required when a DB connection is actually opened
     db_url: str = field(
-        default_factory=lambda: os.environ["DATABASE_URL"]
+        default_factory=lambda: os.getenv("DATABASE_URL", "")
     )
 
     # Binance

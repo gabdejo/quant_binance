@@ -24,11 +24,13 @@ def save_bar(conn, bar: dict) -> None:
         INSERT INTO dollar_bars (
             symbol, open_time, close_time,
             open, high, low, close,
-            volume, dollar_volume, trade_count
+            volume, dollar_volume, buy_volume, sell_volume, trade_count,
+            ofi, kyle_lambda, realized_vol, duration_s
         ) VALUES (
             %(symbol)s, %(open_time)s, %(close_time)s,
             %(open)s, %(high)s, %(low)s, %(close)s,
-            %(volume)s, %(dollar_volume)s, %(trade_count)s
+            %(volume)s, %(dollar_volume)s, %(buy_volume)s, %(sell_volume)s, %(trade_count)s,
+            %(ofi)s, %(kyle_lambda)s, %(realized_vol)s, %(duration_s)s
         )
         ON CONFLICT DO NOTHING;
     """
@@ -60,6 +62,31 @@ def load_accumulator_state(conn, symbol: str) -> dict | None:
         )
         row = cur.fetchone()
     return json.loads(row[0]) if row else None
+
+
+def get_vpin(conn, symbol: str, window: int = 50, limit: int = 500) -> list[dict]:
+    """Return the last *limit* bars with their rolling VPIN value.
+
+    VPIN = rolling mean of |buy_vol - sell_vol| / total_vol over *window* bars.
+    """
+    sql = """
+        SELECT
+            open_time,
+            close_time,
+            AVG(ABS(buy_volume - sell_volume) / NULLIF(buy_volume + sell_volume, 0))
+                OVER (
+                    ORDER BY open_time
+                    ROWS BETWEEN %s PRECEDING AND CURRENT ROW
+                ) AS vpin
+        FROM dollar_bars
+        WHERE symbol = %s
+        ORDER BY open_time DESC
+        LIMIT %s;
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql, (window - 1, symbol, limit))
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
 def get_mean_daily_dollar_volume(conn, symbol: str, lookback_days: int = 30) -> float:

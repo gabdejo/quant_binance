@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: quant_binance
+Version: 0.1.0
+Requires-Python: >=3.10
+Requires-Dist: psycopg2-binary
+Requires-Dist: requests
+Requires-Dist: websocket-client
+Requires-Dist: python-dotenv
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
