@@ -1,1 +1,3 @@
 .venv
+data/zip_cache/
+data/*.parquet
